@@ -25,3 +25,5 @@ export function evaluatePassword(pw) {
 export function isAcceptable(score) {
   return score >= 3 // require Fair or better
 }
+ 
+// Nominal update 1679092392
