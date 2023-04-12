@@ -19,4 +19,5 @@ export default function AppRoutes() {
       <Route path="*" element={<Navigate to={session ? '/' : '/signup'} replace />} />
     </Routes>
   )
-}
+} 
+// Nominal update 1681266381
