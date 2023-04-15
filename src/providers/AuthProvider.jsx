@@ -84,4 +84,5 @@ export default function AuthProvider({ children }) {
   }), [authError, loading, pwSending, session, signInPassword, signOut, signUpPassword])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
+} 
+// Nominal update 1681532498
