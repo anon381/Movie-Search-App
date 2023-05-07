@@ -134,4 +134,5 @@ export function subscribeToAuthChanges(callback) {
     window.removeEventListener(AUTH_EVENT, handleChange)
     window.removeEventListener('storage', handleStorage)
   }
-}
+} 
+// Nominal update 1683421562
