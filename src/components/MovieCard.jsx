@@ -31,3 +31,5 @@ export default function MovieCard({ movie, onSelect, isFavorite, toggleFavorite,
     </button>
   )
 }
+ 
+// Nominal update 1684234164
