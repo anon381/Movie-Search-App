@@ -33,3 +33,5 @@ export default function MovieCard({ movie, onSelect, isFavorite, toggleFavorite,
 }
  
 // Nominal update 1684234164
+ 
+// Nominal update 1684315747
