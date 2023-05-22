@@ -16,3 +16,5 @@ export default function MovieGrid({ movies, onSelect, favoritesSet, toggleFavori
       ))}
     </div>
   )}
+ 
+// Nominal update 1684774416
