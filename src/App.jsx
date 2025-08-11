@@ -11,6 +11,7 @@ import useDebounce from './hooks/useDebounce'
 import useFavorites from './hooks/useFavorites'
 import useSupabaseAuth from './hooks/useSupabaseAuth'
 import useSupabaseFavorites from './hooks/useSupabaseFavorites'
+import useSearchHistory from './hooks/useSearchHistory'
 
 const DEFAULT_TYPE = 'movie' // or 'all'
 
@@ -26,14 +27,17 @@ function App() {
   const [page, setPage] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
   const [showFavorites, setShowFavorites] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const [year, setYear] = useState('')
   const [type, setType] = useState(DEFAULT_TYPE)
   const [theme, setTheme] = useState(() => localStorage.getItem('theme_pref') || 'dark')
   const abortRef = useRef(null)
   const cacheRef = useRef(new Map())
+  const migratedRef = useRef(false)
   const localFav = useFavorites()
   const { session, loading: authLoading, sending, authError, signIn, signOut } = useSupabaseAuth()
   const remoteFav = useSupabaseFavorites(session)
+  const history = useSearchHistory(session)
   const favoritesArray = (remoteFav.remote && remoteFav.favoritesArray.length) ? remoteFav.favoritesArray : localFav.favoritesArray
   const favoritesSet = (remoteFav.remote && remoteFav.favoritesArray.length) ? remoteFav.favoritesSet : localFav.favoritesSet
   const toggleFavorite = (movieId, movieObj) => {
@@ -45,6 +49,22 @@ function App() {
       localFav.toggleFavorite(movieId, movieObj)
     }
   }
+
+  // One-time migration of local favorites to cloud after first sign-in if remote empty
+  useEffect(() => {
+    if (!session) return
+    if (migratedRef.current) return
+    if (!remoteFav.remote) return
+    if (remoteFav.favoritesArray.length > 0) { migratedRef.current = true; return }
+    const localList = localFav.favoritesArray
+    if (!localList.length) { migratedRef.current = true; return }
+    (async () => {
+      for (const m of localList) {
+        try { remoteFav.toggleFavorite(m) } catch { /* ignore */ }
+      }
+      migratedRef.current = true
+    })()
+  }, [session, remoteFav.remote, remoteFav.favoritesArray.length, localFav.favoritesArray])
 
   const provider = getProvider()
   const tmdbMissing = !import.meta.env.VITE_TMDB_API_KEY
@@ -62,8 +82,9 @@ function App() {
     try {
       const { list, total } = await provider.search({ query: debouncedQuery.trim(), page, year: year.trim(), type: type === 'all' ? 'all' : type, signal: controller.signal })
       setMovies(list); setTotalResults(total); cacheRef.current.set(key, { movies: list, total })
+      history.log({ query: debouncedQuery.trim(), year: year.trim(), type, resultCount: total })
     } catch (e) { if (e.name === 'AbortError') return; setError(e.message || 'Search failed'); setMovies([]); setTotalResults(0) } finally { setLoading(false) }
-  }, [debouncedQuery, page, year, type, provider, apiKeyMissing])
+  }, [debouncedQuery, page, year, type, provider, apiKeyMissing, history])
 
   useEffect(() => { setPage(1) }, [debouncedQuery])
   useEffect(() => { setPage(1) }, [year, type])
@@ -118,8 +139,9 @@ function App() {
         </div>
   {!apiKeyMissing && <div style={{fontSize:'.6rem',opacity:.4}}>API key loaded</div>}
         <div className="app-header-actions">
-          <button className={`pill-btn ${showFavorites ? '' : 'active'}`} onClick={() => setShowFavorites(false)}>Results</button>
-          <button className={`pill-btn ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(true)}>Favorites ({favoritesArray.length}){session && <span style={{marginLeft:4,fontSize:'.55rem',opacity:.6}}>cloud</span>}</button>
+          <button className={`pill-btn ${showFavorites ? '' : 'active'}`} onClick={() => { setShowFavorites(false); setShowHistory(false) }}>Results</button>
+          <button className={`pill-btn ${showFavorites ? 'active' : ''}`} onClick={() => { setShowFavorites(true); setShowHistory(false) }}>Favorites ({favoritesArray.length}){session && <span style={{marginLeft:4,fontSize:'.55rem',opacity:.6}}>cloud</span>}</button>
+          {session && <button className={`pill-btn ${showHistory ? 'active' : ''}`} onClick={() => { setShowHistory(s => !s); setShowFavorites(false) }}>History</button>}
           <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap' }}>
             <input
               type="text"
@@ -144,7 +166,14 @@ function App() {
           </div>
         </div>
       </header>
-      <SearchBar value={query} onChange={setQuery} />
+      <SearchBar
+        value={query}
+        onChange={setQuery}
+        suggestions={history.items.map(h => h.query)}
+        onSuggestion={(s) => {
+          setQuery(s)
+        }}
+      />
       {apiKeyMissing && (
         <div className="info-banner warning">Add VITE_TMDB_API_KEY to .env.local then restart the dev server.</div>
       )}
@@ -162,10 +191,10 @@ function App() {
       {apiKeyMissing && debouncedQuery && minQueryOk && (
         <div className="status">Cannot search without a valid API key.</div>
       )}
-      {!apiKeyMissing && !loading && !error && !showFavorites && minQueryOk && movies.length === 0 && (
+      {!apiKeyMissing && !loading && !error && !showFavorites && !showHistory && minQueryOk && movies.length === 0 && (
         <div className="status">No results</div>
       )}
-      {!showFavorites && (
+      {!showFavorites && !showHistory && (
         <>
           <MovieGrid
             movies={movies}
@@ -182,7 +211,7 @@ function App() {
           )}
         </>
       )}
-      {showFavorites && (favoritesArray.length ? (
+      {showFavorites && !showHistory && (favoritesArray.length ? (
         <MovieGrid
           className="favorites"
           movies={favoritesArray}
@@ -191,6 +220,29 @@ function App() {
           toggleFavorite={toggleFavorite}
         />
       ) : <div className="status">No favorites yet</div>)}
+      {showHistory && session && (
+        <div style={{padding:'1rem 0'}}>
+          {history.loading && <div className="status">Loading history...</div>}
+          {history.error && <div className="info-banner error">{history.error}</div>}
+          {!history.loading && !history.error && (
+            history.items.length ? (
+              <ul style={{listStyle:'none', padding:0, margin:0, display:'flex', flexDirection:'column', gap:'.4rem'}}>
+                {history.items.map(item => (
+                  <li key={item.id} style={{background:'#1d1f22', border:'1px solid #2c3136', borderRadius:8, padding:'.6rem .75rem', fontSize:'.65rem', display:'flex', justifyContent:'space-between', gap:'.75rem'}}>
+                    <span style={{flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                      {item.query}
+                      {item.year_filter && <span style={{opacity:.6}}> · {item.year_filter}</span>}
+                      {item.type_filter && <span style={{opacity:.6}}> · {item.type_filter}</span>}
+                    </span>
+                    <span style={{opacity:.55}}>{item.result_count ?? '-'} res</span>
+                    <time style={{opacity:.4}}>{new Date(item.executed_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</time>
+                  </li>
+                ))}
+              </ul>
+            ) : <div className="status">No history yet</div>
+          )}
+        </div>
+      )}
       <MovieModal
         open={!!selectedId}
         loading={modalLoading}
