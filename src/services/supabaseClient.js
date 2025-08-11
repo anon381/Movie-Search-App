@@ -10,7 +10,13 @@ if ((!url || !anon) && typeof window !== 'undefined') {
 	console.error('[supabase] Not initialized: missing env variable(s). Present SUPABASE-related keys:', Object.keys(import.meta.env).filter(k => k.toLowerCase().includes('supabase')))
 }
 
-export const supabase = (url && anon) ? createClient(url, anon, { auth: { persistSession: true } }) : null
+export const supabase = (url && anon) ? createClient(url, anon, {
+	auth: {
+		persistSession: true,
+		autoRefreshToken: true,
+		detectSessionInUrl: true
+	}
+}) : null
 
 export function debugSupabaseConfig() {
 	return {

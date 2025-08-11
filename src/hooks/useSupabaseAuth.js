@@ -3,8 +3,8 @@ import { supabase } from '../services/supabaseClient'
 
 // Handles Supabase auth session listening & simple magic-link sign in
 export default function useSupabaseAuth() {
-  const [session, setSession] = useState(() => supabase?.auth?.getSession ? null : null)
-  const [loading, setLoading] = useState(!!supabase)
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false) // magic link sending
   const [pwSending, setPwSending] = useState(false)
   const [authError, setAuthError] = useState(null)
@@ -13,11 +13,23 @@ export default function useSupabaseAuth() {
   // Load initial session
   useEffect(() => {
     if (!supabase) { setLoading(false); return }
-    let mounted = true
-    supabase.auth.getSession().then(({ data }) => { if (mounted) setSession(data.session) })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => { setSession(s) })
-    setLoading(false)
-    return () => { mounted = false; sub.subscription.unsubscribe() }
+    let active = true
+    ;(async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (error) {
+          // eslint-disable-next-line no-console
+          console.error('[auth] getSession error', error)
+        }
+        if (active) setSession(data?.session ?? null)
+      } finally {
+        if (active) setLoading(false)
+      }
+    })()
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s)
+    })
+    return () => { active = false; sub.subscription.unsubscribe() }
   }, [])
 
   // Magic link sign-in
