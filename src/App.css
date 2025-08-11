@@ -106,8 +106,10 @@ html, body { background:#0e1114; }
 /* Modal */
 .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:1.5rem; backdrop-filter:blur(4px); z-index:10; }
 .modal { width: min(900px, 100%); max-height: 90vh; overflow:auto; background:#16171a; border:1px solid #2a2d34; border-radius:18px; padding:1.5rem 1.75rem 2rem; position:relative; box-shadow:0 8px 32px -8px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04) inset; }
-.close-btn { position:absolute; top:.75rem; right:.75rem; width:2.25rem; height:2.25rem; border-radius:50%; background:#262a30; border:1px solid #333841; font-size:1.1rem; line-height:1; }
-.close-btn:hover { background:#323842; }
+.close-btn { position:absolute; top:.75rem; right:.75rem; width:2.25rem; height:2.25rem; border-radius:50%; background:#262a30; border:1px solid #333841; font-size:1.15rem; line-height:1; display:flex; align-items:center; justify-content:center; font-weight:600; color:#cfd3d9; transition:background .25s, color .25s, border-color .25s, transform .18s; }
+.close-btn:hover { background:#323842; color:#fff; }
+.close-btn:active { transform:scale(.92); }
+.close-btn:focus-visible { outline:2px solid #646cff; outline-offset:2px; }
 .modal-header h2 { margin:0 0 .3rem; font-size:1.6rem; }
 .muted { color:#8b929e; }
 .muted.small { font-size:.75rem; margin:.35rem 0; }
@@ -127,10 +129,11 @@ button:disabled { opacity:.55; cursor:not-allowed; }
 /* Favorites & badges */
 .movie-card.fav { border-color:#4d3d12; }
 .fav-badge { position:absolute; top:.4rem; left:.4rem; background:#e2b437; color:#1a1302; font-size:.55rem; padding:.25rem .4rem; border-radius:6px; font-weight:600; letter-spacing:.05em; box-shadow:0 2px 4px rgba(0,0,0,.4); }
-.fav-toggle { position:absolute; top:.4rem; right:.4rem; background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.18); width:2rem; height:2rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.15rem; line-height:1; font-weight:600; cursor:pointer; color:#d0d0d0; transition:background .25s,color .25s, transform .25s, border-color .25s; }
-.fav-toggle:hover { background:rgba(0,0,0,.75); color:#fff; }
-.fav-toggle.on { background:#2a0d11; border-color:#6b1d28; color:#ff5d70; box-shadow:0 2px 6px -2px rgba(0,0,0,.6); }
-.fav-toggle.on:hover { background:#3a151b; }
+.fav-toggle { position:absolute; top:.35rem; right:.45rem; background:none; border:none; width:auto; height:auto; border-radius:0; display:flex; align-items:center; justify-content:center; font-size:1.25rem; line-height:1; font-weight:600; cursor:pointer; color:#b5b8bb; padding:.1rem .25rem; transition:color .25s, transform .22s; }
+.fav-toggle:hover { color:#fff; }
+.fav-toggle:active { transform:scale(.85); }
+.fav-toggle.on { color:#ff3d55; text-shadow:0 0 4px rgba(255,61,85,.4); }
+.fav-toggle.on:hover { color:#ff5d70; }
 
 /* Skeleton loading */
 .skeleton-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:1rem; margin-top:1rem; }
