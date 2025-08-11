@@ -9,15 +9,19 @@ function getApiKey(optional = false) {
   return key
 }
 
-export async function searchMovies(query) {
+export async function searchMovies({ query, page = 1, year, type, signal }) {
   const key = getApiKey(true)
-  if (!key) return []
-  const url = `${API_URL}?apikey=${key}&s=${encodeURIComponent(query)}&type=movie`
-  const res = await fetch(url)
+  if (!key) return { list: [], total: 0 }
+  if (!query || query.trim().length < 2) return { list: [], total: 0 }
+  const params = new URLSearchParams({ apikey: key, s: query, page: String(page) })
+  if (type) params.set('type', type)
+  if (year) params.set('y', year)
+  const url = `${API_URL}?${params.toString()}`
+  const res = await fetch(url, { signal })
   if (!res.ok) throw new Error('Network error')
   const data = await res.json()
   if (data.Response === 'False') throw new Error(data.Error || 'No results')
-  return data.Search
+  return { list: data.Search, total: Number(data.totalResults || data.Search?.length || 0) }
 }
 
 export async function getMovieDetails(id) {
