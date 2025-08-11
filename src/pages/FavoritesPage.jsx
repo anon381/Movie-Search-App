@@ -50,6 +50,7 @@ export default function FavoritesPage() {
           onSelect={openDetails}
           favoritesSet={favoritesSet}
           toggleFavorite={toggleFavorite}
+          showFavBadge={false}
         />
       ) : <div className="status" style={{padding:'2rem 0'}}>No favorites yet</div>}
       <MovieModal open={!!selectedId} loading={modalLoading} movie={selected} onClose={closeModal} />

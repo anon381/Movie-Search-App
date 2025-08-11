@@ -1,9 +1,9 @@
-export default function MovieCard({ movie, onSelect, isFavorite, toggleFavorite }) {
+export default function MovieCard({ movie, onSelect, isFavorite, toggleFavorite, showFavBadge = true }) {
   const { Title, Year, Poster, Type, imdbID } = movie
   const posterOk = Poster && Poster !== 'N/A'
   return (
     <button className={`movie-card${isFavorite ? ' fav' : ''}`} onClick={() => onSelect(imdbID)} role="listitem">
-      {isFavorite && <span className="fav-badge">FAV</span>}
+  {isFavorite && showFavBadge && <span className="fav-badge">FAV</span>}
       <span
         className={`fav-toggle${isFavorite ? ' on' : ''}`}
         title={isFavorite ? 'Remove favorite' : 'Add favorite'}
