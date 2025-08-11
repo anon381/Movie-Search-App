@@ -1,75 +1,103 @@
 # Movie Search App
 
-Vite + React app for searching movies (and series) using TMDB.
-
-## Scripts
-- `npm run dev` – start dev server
-- `npm run build` – production build
-- `npm run preview` – preview build
-
-## Quick Start
-1. Install deps
-```
-npm install
-```
-2. Create `.env.local` (or `.env`) with at least one provider key (see below)
-3. Run
-```
-npm run dev
-```
-4. Open the shown local URL.
-
-## Data Provider
-Currently only TMDB is included (simplified from earlier multi-provider abstraction).
-
-## Environment Variables
-Add these to `.env.local` (preferred) or `.env`:
-```
-# TMDB (https://www.themoviedb.org/settings/api) – create a (free) account and request an API key
-VITE_TMDB_API_KEY=YOUR_TMDB_KEY
-# Optional custom image base (default https://image.tmdb.org/t/p)
-VITE_TMDB_IMG_BASE=https://image.tmdb.org/t/p
-```
-Restart the dev server after changes.
+React + Vite application to search The Movie Database (TMDB) and manage favorites locally or synced to the cloud using Supabase (Auth + Postgres). Includes email/password auth with confirmation & password reset flow.
 
 ## Features
-- Debounced search (min 2 chars, abortable requests)
-- TMDB search & details
-- Pagination (auto page size per provider)
-- Favorites (persisted in `localStorage`)
-- Filters: year, type (movie / series / all)
-- Caching of search pages within session
-- Skeleton loading states with shimmer
-- Accessible modal with details
-- Responsive layout & dark/light theme toggle
-- Graceful handling of missing API keys & empty states
 
-## Roadmap / Ideas
-- Infinite scroll option
-- Advanced filtering (genre, rating)
-- Add cast/crew expansion for TMDB (credits endpoint)
-- Migrate to TypeScript fully
-- Unit tests for provider adapters
+- Instant TMDB search with debounced input, abort & result caching
+- Movie / Series / All type filter + optional year filter
+- Paginated results (20 per page)
+- Detailed modal (credits included)
+- Favorites (grid on main page + dedicated `/favorites` route):
+	- Anonymous: stored locally (localStorage)
+	- Signed in: stored in Supabase `favorites` table (cloud sync)
+	- Automatic one‑time migration of existing local favorites after first successful sign‑in
+- Search history (per signed-in user, last 30 entries, deduplicated & rate limited) + inline type‑ahead suggestions while typing
+- Email/password authentication with email confirmation, existing user detection, resend confirmation, and password reset request (Supabase)
+- Light / Dark theme toggle (persisted)
+- Responsive grid, skeleton loading states & accessible status messaging
 
-## Project Structure (selected)
+## Stack
+
+- React 19, Vite 7, React Router 6
+- Supabase JS v2 (Auth + Postgres)
+- TMDB REST API
+
+## Environment Variables
+
+Create a `.env.local` (never commit) using the template below (also see `.env.example`):
+
 ```
-src/
-  App.jsx
-  services/
-    providers/
-      base.js
-      tmdbProvider.js
-      index.js
-  components/
-  hooks/
+VITE_TMDB_API_KEY=YOUR_TMDB_KEY
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_your_KEY
+```
+
+Restart `npm run dev` after changes. Vite in this project loads `.env.local` explicitly; `.env` backup is optional.
+
+## Supabase Setup
+
+1. Create project → note Project URL (use as `VITE_SUPABASE_URL`).
+2. Copy the anon public key (NOT the service_role) → `VITE_SUPABASE_ANON_KEY`.
+3. Open the SQL editor and run the contents of `db/schema.sql` from this repo (creates `profiles`, `favorites`, `search_history`, extensions, RLS policies, trigger for profile auto‑insert, indexes). Adjust if any objects already exist.
+4. Ensure Email auth is enabled (Authentication → Providers → Email) and (optionally) require email confirmation.
+5. Add your site URL / localhost to Authentication → URL Configuration (redirects).
+6. (Optional) Add rate limits or Edge Functions later for heavier workloads.
+
+## Running Locally
+
+Install deps & start dev server:
+
+```bash
+npm install
+npm run dev
+```
+
+Open the shown local URL (usually `http://localhost:5173`).
+
+## Auth Flow (Email & Password)
+
+1. Sign Up: Enter email + password + confirm password. If confirmation is required, a confirmation email is sent and the form switches to Sign In mode automatically.
+2. Confirm: Click the email link → you return with an active session (or simply sign in after confirming).
+3. Existing email detection: If the email is already registered, the UI switches to Sign In with a message instead of re-sending confirmation.
+4. Resend: While waiting for confirmation you can press the Resend button (rate limited by Supabase).
+5. Sign In: Enter email + password → session stored (persisted). Favorites switch to cloud mode.
+6. Password Reset: Enter your email in the reset box to receive a reset link (route handler page placeholder can be added at `/#/password-reset`).
+7. Migration: On first sign‑in, existing local favorites (if any) are auto‑migrated to Supabase.
+
+## Favorites Migration Logic
+
+Implemented in `App.jsx`: When a user signs in and has zero remote favorites but some local favorites, each local favorite is upserted to Supabase. Remote list then drives the UI; local copy remains as fallback but is ignored once remote contains items.
+
+## Building / Preview
+
+```bash
+npm run build
+npm run preview
 ```
 
 ## Troubleshooting
-- Search disabled? Ensure the active provider has a valid key and query length >= 2.
-- Changed env vars? Stop and restart `npm run dev`.
-- No images on TMDB? Confirm `VITE_TMDB_IMG_BASE` (default works) and that poster paths exist.
 
-## License
-Personal / educational use. Add your license of choice.
+- API key banner appears: Ensure `VITE_TMDB_API_KEY` is set and dev server restarted.
+- Supabase favorites not syncing: Verify tables + policies via `db/schema.sql`, and confirm anon key/env vars.
+- Confirmation email missing: Check Supabase Auth logs, spam folder, allowed redirect URLs; use Resend.
+- Existing email loops: The UI should auto-switch to Sign In; if not, clear site data and retry.
+- Search suggestions not showing: Requires at least one prior search while signed in (history is per-user) or local (anonymous) queries (limited set).
 
+## Security Notes
+
+- Never expose the service_role key in client code or `.env` committed to git.
+- Rotate any key that was accidentally printed or shared.
+
+## Future Enhancements (Ideas)
+
+- OAuth providers (GitHub/Google) via Supabase
+- Offline queue for favorites when network unavailable
+- Advanced filtering (genres, people, ratings)
+- Server-side rendering or static pre-render
+- Profile editing (display name / avatar) referencing `profiles` table
+- Dedicated password reset completion page
+
+---
+Data provided by TMDB; this product uses the TMDB API but is not endorsed or certified by TMDB.
 
