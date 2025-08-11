@@ -1,57 +1,75 @@
-
 # Movie Search App
 
-This project was bootstrapped with [Vite](https://vitejs.dev/) and uses React.
+Vite + React app for searching movies (and series) using TMDB.
 
-## Available Scripts
+## Scripts
+- `npm run dev` – start dev server
+- `npm run build` – production build
+- `npm run preview` – preview build
 
-In the project directory, you can run:
-
-### `npm run dev`
-Runs the app in development mode.
-
-### `npm run build`
-Builds the app for production.
-
-### `npm run preview`
-Previews the production build locally.
-
-## Getting Started
-1. Install dependencies:
-	```
+## Quick Start
+1. Install deps
+```
 npm install
-	```
-2. Start the development server:
-	```
+```
+2. Create `.env.local` (or `.env`) with at least one provider key (see below)
+3. Run
+```
 npm run dev
-	```
-
-## Project Structure
-- `src/` - Source code
-- `public/` - Static assets
-
----
-
-## OMDb API Setup
-Create a `.env` file in the project root with:
-
 ```
-VITE_OMDB_API_KEY=YOUR_KEY_HERE
+4. Open the shown local URL.
+
+## Data Provider
+Currently only TMDB is included (simplified from earlier multi-provider abstraction).
+
+## Environment Variables
+Add these to `.env.local` (preferred) or `.env`:
+```
+# TMDB (https://www.themoviedb.org/settings/api) – create a (free) account and request an API key
+VITE_TMDB_API_KEY=YOUR_TMDB_KEY
+# Optional custom image base (default https://image.tmdb.org/t/p)
+VITE_TMDB_IMG_BASE=https://image.tmdb.org/t/p
+```
+Restart the dev server after changes.
+
+## Features
+- Debounced search (min 2 chars, abortable requests)
+- TMDB search & details
+- Pagination (auto page size per provider)
+- Favorites (persisted in `localStorage`)
+- Filters: year, type (movie / series / all)
+- Caching of search pages within session
+- Skeleton loading states with shimmer
+- Accessible modal with details
+- Responsive layout & dark/light theme toggle
+- Graceful handling of missing API keys & empty states
+
+## Roadmap / Ideas
+- Infinite scroll option
+- Advanced filtering (genre, rating)
+- Add cast/crew expansion for TMDB (credits endpoint)
+- Migrate to TypeScript fully
+- Unit tests for provider adapters
+
+## Project Structure (selected)
+```
+src/
+  App.jsx
+  services/
+    providers/
+      base.js
+      tmdbProvider.js
+      index.js
+  components/
+  hooks/
 ```
 
-Replace `YOUR_KEY_HERE` with your OMDb API key (get one free at http://www.omdbapi.com/apikey.aspx). Restart the dev server after adding.
+## Troubleshooting
+- Search disabled? Ensure the active provider has a valid key and query length >= 2.
+- Changed env vars? Stop and restart `npm run dev`.
+- No images on TMDB? Confirm `VITE_TMDB_IMG_BASE` (default works) and that poster paths exist.
 
-## Features Implemented
-- Debounced movie search (min 2 chars)
-- Grid of results with posters
-- Modal with detailed info (plot, cast, ratings)
-- Graceful handling of missing posters & errors
-- Responsive design & accessible semantics
-
-## Next Ideas
-- Add pagination (OMDb `page` param)
-- Favorites (localStorage)
-- TypeScript migration
-- Tests for API layer
+## License
+Personal / educational use. Add your license of choice.
 
 
