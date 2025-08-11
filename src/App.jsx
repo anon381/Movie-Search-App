@@ -32,7 +32,7 @@ function App() {
   const cacheRef = useRef(new Map())
   const migratedRef = useRef(false)
   const localFav = useFavorites()
-  const { session, loading: authLoading, sending, authError, signIn, signOut } = useSupabaseAuth()
+  const { session, loading: authLoading, sending, authError, signIn, signOut, sessionExpired, clearSessionExpired } = useSupabaseAuth()
   const remoteFav = useSupabaseFavorites(session)
   const history = useSearchHistory(session)
   const favoritesArray = (remoteFav.remote && remoteFav.favoritesArray.length) ? remoteFav.favoritesArray : localFav.favoritesArray
@@ -158,6 +158,16 @@ function App() {
       </div>
       {apiKeyMissing && (
         <div className="info-banner warning">Add VITE_TMDB_API_KEY to .env.local then restart the dev server.</div>
+      )}
+      {sessionExpired && (
+        <div className="info-banner error" style={{maxWidth:620}}>
+          <div style={{fontWeight:600, marginBottom:'.35rem'}}>Session expired</div>
+          <div style={{fontSize:'.7rem', opacity:.85, marginBottom:'.6rem'}}>Your authentication token is no longer valid. Please sign in again to continue syncing favorites & history.</div>
+          <div style={{display:'flex', gap:'.5rem', flexWrap:'wrap'}}>
+            <button className="pill-btn" onClick={() => { signOut().finally(() => clearSessionExpired()) }}>Re-Authenticate</button>
+            <button className="pill-btn" style={{background:'#2a2f35'}} onClick={clearSessionExpired}>Dismiss</button>
+          </div>
+        </div>
       )}
       {error && <div className="info-banner error">{error}</div>}
       {(!apiKeyMissing && loading) && !error && (
