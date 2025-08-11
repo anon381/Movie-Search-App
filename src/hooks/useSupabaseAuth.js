@@ -9,6 +9,7 @@ export default function useSupabaseAuth() {
   const [pwSending, setPwSending] = useState(false)
   const [authError, setAuthError] = useState(null)
   const [lastSignInInfo, setLastSignInInfo] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   // Load initial session
   useEffect(() => {
@@ -26,11 +27,65 @@ export default function useSupabaseAuth() {
         if (active) setLoading(false)
       }
     })()
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // eslint-disable-next-line no-console
+      console.log('[auth] event', event, 'at', new Date().toISOString())
       setSession(s)
+      if (event === 'TOKEN_REFRESHED') {
+        setSessionExpired(false)
+      }
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        // explicit sign out resets expiry state
+        setSessionExpired(false)
+      }
     })
     return () => { active = false; sub.subscription.unsubscribe() }
   }, [])
+
+  // Visibility / network resume triggers a session check which can refresh tokens if near expiry
+  useEffect(() => {
+    if (!supabase) return
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().catch(() => {})
+      }
+    }
+    const handleOnline = () => {
+      supabase.auth.getSession().catch(() => {})
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('online', handleOnline)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('online', handleOnline)
+    }
+  }, [])
+
+  // Helper to wrap Supabase RPC / query calls and detect expired JWTs
+  const safeCall = useCallback(async (fn, opts = {}) => {
+    try {
+      const result = await fn()
+      if (result && result.error) {
+        const msg = (result.error.message || '').toLowerCase()
+        if (msg.includes('jwt expired') || msg.includes('invalid jwt')) {
+          setSessionExpired(true)
+          // attempt a silent refresh once
+          try { await supabase.auth.getSession() } catch { /* ignore */ }
+        }
+        if (opts.throwOnError !== false) throw result.error
+      }
+      return result
+    } catch (e) {
+      const msg = (e.message || '').toLowerCase()
+      if (msg.includes('jwt expired') || msg.includes('invalid jwt')) {
+        setSessionExpired(true)
+      }
+      if (opts.rethrow === false) return { error: e }
+      throw e
+    }
+  }, [])
+
+  const clearSessionExpired = useCallback(() => setSessionExpired(false), [])
 
   // Magic link sign-in
   const signIn = useCallback(async (email) => {
@@ -132,5 +187,21 @@ export default function useSupabaseAuth() {
     } catch (e) { setAuthError(e.message || 'Unexpected error'); return { ok:false, error:e.message } } finally { setPwSending(false) }
   }, [])
 
-  return { session, loading, sending, pwSending, authError, signIn, signUpPassword, signInPassword, resetPassword, signOut, resendConfirmation, lastSignInInfo }
+  return {
+    session,
+    loading,
+    sending,
+    pwSending,
+    authError,
+    sessionExpired,
+    clearSessionExpired,
+    signIn,
+    signUpPassword,
+    signInPassword,
+    resetPassword,
+    signOut,
+    resendConfirmation,
+    lastSignInInfo,
+    safeCall
+  }
 }
