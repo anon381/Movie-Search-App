@@ -98,3 +98,28 @@
 button.movie-card { border:none; }
 button.clear-btn, .close-btn { cursor:pointer; }
 button:disabled { opacity:.55; cursor:not-allowed; }
+
+/* Favorites & badges */
+.movie-card.fav { border-color:#4d3d12; }
+.fav-badge { position:absolute; top:.4rem; left:.4rem; background:#e2b437; color:#1a1302; font-size:.55rem; padding:.25rem .4rem; border-radius:6px; font-weight:600; letter-spacing:.05em; box-shadow:0 2px 4px rgba(0,0,0,.4); }
+.fav-toggle { position:absolute; top:.4rem; right:.4rem; background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.15); width:2rem; height:2rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+.fav-toggle:hover { background:rgba(0,0,0,.7); }
+
+/* Skeleton loading */
+.skeleton-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:1rem; margin-top:1rem; }
+.skeleton-card { background:#1b1c1f; border:1px solid #232428; border-radius:14px; height:280px; position:relative; overflow:hidden; }
+.shimmer { position:absolute; inset:0; background: linear-gradient(110deg,#1f2023 8%,#272a2f 18%,#1f2023 33%); background-size:200% 100%; animation:shimmer 1.2s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* Pagination */
+.pagination { display:flex; justify-content:center; gap:.5rem; margin-top:1.75rem; }
+.pagination button { background:#1e2227; border:1px solid #30363d; }
+.pagination button[disabled] { opacity:.35; }
+
+/* Header actions */
+.app-header-actions { display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; margin-top:.75rem; }
+.pill-btn { font-size:.7rem; letter-spacing:.05em; text-transform:uppercase; padding:.45rem .85rem; background:#1e2227; border:1px solid #2d333b; border-radius:999px; cursor:pointer; }
+.pill-btn.active { background:#39424d; border-color:#4a5663; }
+
+/* Theme toggle */
+.theme-toggle { position:fixed; bottom:1rem; right:1rem; background:#1e2227; border:1px solid #30363d; padding:.6rem .9rem; border-radius:10px; font-size:.8rem; }
