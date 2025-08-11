@@ -9,6 +9,8 @@ import MovieModal from './components/MovieModal'
 import { getProvider } from './services/providers'
 import useDebounce from './hooks/useDebounce'
 import useFavorites from './hooks/useFavorites'
+import useSupabaseAuth from './hooks/useSupabaseAuth'
+import useSupabaseFavorites from './hooks/useSupabaseFavorites'
 
 const DEFAULT_TYPE = 'movie' // or 'all'
 
@@ -29,7 +31,20 @@ function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme_pref') || 'dark')
   const abortRef = useRef(null)
   const cacheRef = useRef(new Map())
-  const { favoritesArray, favoritesSet, toggleFavorite } = useFavorites()
+  const localFav = useFavorites()
+  const { session, loading: authLoading, sending, authError, signIn, signOut } = useSupabaseAuth()
+  const remoteFav = useSupabaseFavorites(session)
+  const favoritesArray = (remoteFav.remote && remoteFav.favoritesArray.length) ? remoteFav.favoritesArray : localFav.favoritesArray
+  const favoritesSet = (remoteFav.remote && remoteFav.favoritesArray.length) ? remoteFav.favoritesSet : localFav.favoritesSet
+  const toggleFavorite = (movieId, movieObj) => {
+    if (session) {
+      // movieObj might be passed as (id, movie). Normalize.
+      const movie = movieObj && movieObj.imdbID ? movieObj : { imdbID: movieId, ...movieObj }
+      remoteFav.toggleFavorite(movie)
+    } else {
+      localFav.toggleFavorite(movieId, movieObj)
+    }
+  }
 
   const provider = getProvider()
   const tmdbMissing = !import.meta.env.VITE_TMDB_API_KEY
@@ -87,10 +102,24 @@ function App() {
       <header className="app-header">
         <h1>Movie Search</h1>
         <p className="tagline">Find movies powered by {providerLabel}</p>
+        <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap', marginTop:'.25rem' }}>
+          {session ? (
+            <>
+              <span style={{fontSize:'.65rem',opacity:.7}}>Signed in: {session.user.email}</span>
+              <button className="pill-btn" onClick={signOut}>Sign Out</button>
+            </>
+          ) : (
+            <form onSubmit={(e)=>{e.preventDefault(); const email=e.target.elements.email.value; if(email) signIn(email)}} style={{display:'flex',gap:'.4rem',alignItems:'center'}}>
+              <input name="email" type="email" placeholder="Email for favorites sync" required style={{padding:'.3rem .5rem',background:'#1d1f22',border:'1px solid #2c3136',borderRadius:6,color:'inherit',fontSize:'.7rem'}} />
+              <button disabled={sending} className="pill-btn" type="submit" style={{fontSize:'.65rem'}}>{sending?'Sending...':'Link'}</button>
+            </form>
+          )}
+          {authError && <span style={{color:'#f55',fontSize:'.6rem'}}>{authError}</span>}
+        </div>
   {!apiKeyMissing && <div style={{fontSize:'.6rem',opacity:.4}}>API key loaded</div>}
         <div className="app-header-actions">
           <button className={`pill-btn ${showFavorites ? '' : 'active'}`} onClick={() => setShowFavorites(false)}>Results</button>
-          <button className={`pill-btn ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(true)}>Favorites ({favoritesArray.length})</button>
+          <button className={`pill-btn ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(true)}>Favorites ({favoritesArray.length}){session && <span style={{marginLeft:4,fontSize:'.55rem',opacity:.6}}>cloud</span>}</button>
           <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap' }}>
             <input
               type="text"
