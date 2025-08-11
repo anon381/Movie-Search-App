@@ -27,7 +27,6 @@ function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [year, setYear] = useState('')
   const [type, setType] = useState(DEFAULT_TYPE)
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme_pref') || 'dark')
   const abortRef = useRef(null)
   const cacheRef = useRef(new Map())
   const migratedRef = useRef(false)
@@ -90,13 +89,6 @@ function App() {
 
   const skeletons = Array.from({ length: Math.min(pageSize, 10) })
 
-  // Theme management
-  useEffect(() => {
-    const root = document.documentElement
-    if (theme === 'light') root.classList.add('theme-light')
-    else root.classList.remove('theme-light')
-    try { localStorage.setItem('theme_pref', theme) } catch {}
-  }, [theme])
 
   const openDetails = async (id) => {
     setSelectedId(id)
@@ -242,11 +234,6 @@ function App() {
         onClose={closeModal}
       />
   <footer className="app-footer">Data courtesy of TMDB</footer>
-      <button
-        className="theme-toggle"
-        onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-        aria-label="Toggle color theme"
-      >Theme: {theme === 'dark' ? 'Dark' : 'Light'}</button>
     </div>
   )
 }
