@@ -5,14 +5,16 @@ export default function MovieCard({ movie, onSelect, isFavorite, toggleFavorite 
     <button className={`movie-card${isFavorite ? ' fav' : ''}`} onClick={() => onSelect(imdbID)} role="listitem">
       {isFavorite && <span className="fav-badge">FAV</span>}
       <span
-        className="fav-toggle"
+        className={`fav-toggle${isFavorite ? ' on' : ''}`}
         title={isFavorite ? 'Remove favorite' : 'Add favorite'}
         onClick={(e) => {
           e.stopPropagation()
           toggleFavorite(imdbID, movie)
         }}
+        role="button"
+        aria-pressed={isFavorite}
         aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-      >{isFavorite ? '★' : '☆'}</span>
+      >{isFavorite ? '×' : '+'}</span>
       <div className="poster-wrapper">
         {posterOk ? (
           <img src={Poster} alt={`${Title} poster`} loading="lazy" />
