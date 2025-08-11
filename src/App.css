@@ -10,11 +10,17 @@ html, body { background:#0e1114; }
 }
 
 .app-header { position:relative; text-align:center; padding-top:1rem; }
-.auth-cluster { position:absolute; top:.5rem; right:1.25rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; justify-content:flex-end; max-width:40%; }
+.auth-cluster { position:absolute; top:.5rem; right:1.25rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; justify-content:flex-end; max-width:60%; }
 .auth-cluster .user-email { font-size:.65rem; opacity:.75; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-@media (max-width: 680px) { 
-  .auth-cluster { position:static; justify-content:center; max-width:100%; margin-top:.5rem; }
-  .app-header { padding-top:.5rem; }
+/* Keep auth cluster top-right even on narrow screens per request */
+@media (max-width: 900px) {
+  .app-header { padding-top:3.75rem; }
+  .app-header h1 { font-size:1.5rem; }
+}
+@media (max-width: 560px) {
+  .app-header { padding-top:4.5rem; }
+  .app-header h1 { font-size:1.35rem; }
+  .auth-cluster { max-width:100%; }
 }
 
 .top-bar { position:relative; display:flex; justify-content:center; align-items:flex-start; min-height:3rem; margin-bottom:1.25rem; }
@@ -70,6 +76,11 @@ html, body { background:#0e1114; }
   grid-template-columns: repeat(auto-fill,minmax(150px,1fr));
   gap: 1rem;
   margin-top: 1rem;
+}
+@media (max-width: 900px) {
+  /* Force exactly two columns for small screens */
+  .movie-grid { grid-template-columns: repeat(2, 1fr); }
+  .skeleton-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Cards */
@@ -152,4 +163,3 @@ button:disabled { opacity:.55; cursor:not-allowed; }
 .pill-btn.active { background:#39424d; border-color:#4a5663; }
 
 /* Theme toggle */
-.theme-toggle { position:fixed; bottom:1rem; right:1rem; background:#1e2227; border:1px solid #30363d; padding:.6rem .9rem; border-radius:10px; font-size:.8rem; }
