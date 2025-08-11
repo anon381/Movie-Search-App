@@ -18,6 +18,50 @@ dist-ssr
 # Encrypted secret files
 *.env
 
+# Local environment overrides
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build / cache artifacts
+.cache
+.parcel-cache
+*.tsbuildinfo
+*.eslintcache
+vite.config.timestamp-* 
+.vite
+
+# Testing / coverage
+coverage
+reports
+
+# Tooling / package managers
+pnpm-lock.yaml
+.pnpm-store
+yarn.lock
+
+# Framework / hosting platform dirs
+.vercel
+.netlify
+firebase-debug.log
+firestore-debug.log
+storage-debug.log
+
+# Turbo / Nx / other monorepo build caches (future-proofing)
+.turbo
+
+# Misc
+Thumbs.db
+ehthumbs.db
+*.iml
+*.orig
+*.rej
+*.tgz
+
+# Supabase local dev (if using supabase CLI later)
+.supabase
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
