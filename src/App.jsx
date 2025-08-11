@@ -1,7 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-// Debug env visibility
-// eslint-disable-next-line no-console
-console.log('VITE_TMDB_API_KEY (debug):', JSON.stringify(import.meta.env.VITE_TMDB_API_KEY), 'presentFlag:', __TMDB_KEY_PRESENT__)
 import './App.css'
 import SearchBar from './components/SearchBar'
 import MovieGrid from './components/MovieGrid'
@@ -121,9 +118,9 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>Movie Search</h1>
-        <p className="tagline">Find movies powered by {providerLabel}</p>
-        <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap', marginTop:'.25rem' }}>
+  <h1>Movie Search</h1>
+  <p className="tagline">Find movies powered by {providerLabel}</p>
+  <div className="auth-cluster">
           {session ? (
             <>
               <span style={{fontSize:'.65rem',opacity:.7}}>Signed in: {session.user.email}</span>
@@ -137,34 +134,6 @@ function App() {
           )}
           {authError && <span style={{color:'#f55',fontSize:'.6rem'}}>{authError}</span>}
         </div>
-  {!apiKeyMissing && <div style={{fontSize:'.6rem',opacity:.4}}>API key loaded</div>}
-        <div className="app-header-actions">
-          <button className={`pill-btn ${showFavorites ? '' : 'active'}`} onClick={() => { setShowFavorites(false); setShowHistory(false) }}>Results</button>
-          <button className={`pill-btn ${showFavorites ? 'active' : ''}`} onClick={() => { setShowFavorites(true); setShowHistory(false) }}>Favorites ({favoritesArray.length}){session && <span style={{marginLeft:4,fontSize:'.55rem',opacity:.6}}>cloud</span>}</button>
-          {session && <button className={`pill-btn ${showHistory ? 'active' : ''}`} onClick={() => { setShowHistory(s => !s); setShowFavorites(false) }}>History</button>}
-          <div style={{ display:'flex', gap:'.5rem', flexWrap:'wrap' }}>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="\\d{4}"
-              placeholder="Year"
-              value={year}
-              onChange={(e) => setYear(e.target.value.slice(0,4))}
-              style={{ width:'4.5rem', padding:'.4rem .5rem', background:'#1d1f22', border:'1px solid #2c3136', borderRadius:8, color:'inherit' }}
-              aria-label="Filter by year"
-            />
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              style={{ padding:'.45rem .6rem', background:'#1d1f22', border:'1px solid #2c3136', borderRadius:8, color:'inherit' }}
-              aria-label="Filter by type"
-            >
-              <option value="movie">Movies</option>
-              <option value="series">Series</option>
-              <option value="all">All</option>
-            </select>
-          </div>
-        </div>
       </header>
       <SearchBar
         value={query}
@@ -174,6 +143,19 @@ function App() {
           setQuery(s)
         }}
       />
+      <div className="post-search-actions" style={{display:'flex', flexWrap:'wrap', gap:'.6rem', alignItems:'center', justifyContent:'center', marginBottom:'1rem'}}>
+        <button className={`pill-btn ${showFavorites ? '' : 'active'}`} onClick={() => { setShowFavorites(false); setShowHistory(false) }}>Results</button>
+        <button className={`pill-btn ${showFavorites ? 'active' : ''}`} onClick={() => { setShowFavorites(true); setShowHistory(false) }}>Favorites ({favoritesArray.length}){session && <span style={{marginLeft:4,fontSize:'.55rem',opacity:.6}}>cloud</span>}</button>
+        {session && <button className={`pill-btn ${showHistory ? 'active' : ''}`} onClick={() => { setShowHistory(s => !s); setShowFavorites(false) }}>History</button>}
+        <div style={{display:'flex', gap:'.4rem', flexWrap:'wrap'}}>
+          <input type="text" inputMode="numeric" pattern="\\d{4}" placeholder="Year" value={year} onChange={e=> setYear(e.target.value.slice(0,4))} aria-label="Filter by year" style={{ width:'4.5rem', padding:'.4rem .5rem', background:'#1d1f22', border:'1px solid #2c3136', borderRadius:8, color:'inherit', fontSize:'.65rem' }} />
+          <select value={type} onChange={e=> setType(e.target.value)} aria-label="Filter by type" style={{ padding:'.45rem .6rem', background:'#1d1f22', border:'1px solid #2c3136', borderRadius:8, color:'inherit', fontSize:'.65rem' }}>
+            <option value="movie">Movies</option>
+            <option value="series">Series</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+      </div>
       {apiKeyMissing && (
         <div className="info-banner warning">Add VITE_TMDB_API_KEY to .env.local then restart the dev server.</div>
       )}
