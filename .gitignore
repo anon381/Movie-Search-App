@@ -11,6 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+# Environment files
+.env
+.env.*
+!.env.example
 # Encrypted secret files
 *.env
 
