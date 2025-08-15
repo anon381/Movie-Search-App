@@ -10,7 +10,7 @@ import useSupabaseAuth from './hooks/useSupabaseAuth'
 import useSupabaseFavorites from './hooks/useSupabaseFavorites'
 import useSearchHistory from './hooks/useSearchHistory'
 
-const DEFAULT_TYPE = 'movie' // or 'all'
+const DEFAULT_TYPE = 'movie' // or 'All'
 
 function App() {
   const [query, setQuery] = useState('')
