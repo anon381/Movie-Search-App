@@ -173,7 +173,7 @@ function App() {
         <div className="status">Type at least 2 characters to search</div>
       )}
       {apiKeyMissing && debouncedQuery && minQueryOk && (
-        <div className="status">Cannot search without a valid API key.</div>
+        <div className="status">Can't search without a valid API key.</div>
       )}
       {!apiKeyMissing && !loading && !error && !showFavorites && !showHistory && minQueryOk && movies.length === 0 && (
         <div className="status">No results</div>
@@ -215,7 +215,7 @@ function App() {
                   <li key={item.id} style={{background:'#1d1f22', border:'1px solid #2c3136', borderRadius:8, padding:'.6rem .75rem', fontSize:'.65rem', display:'flex', justifyContent:'space-between', gap:'.75rem'}}>
                     <span style={{flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
                       {item.query}
-                      {item.year_filter && <span style={{opacity:.6}}> · {item.year_filter}</span>}
+                      {item.year_filter && <span style={{opacity:.5}}> · {item.year_filter}</span>}
                       {item.type_filter && <span style={{opacity:.6}}> · {item.type_filter}</span>}
                     </span>
                     <span style={{opacity:.55}}>{item.result_count ?? '-'} res</span>
