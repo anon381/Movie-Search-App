@@ -37,7 +37,7 @@ export default function FavoritesPage() {
     <div className="app-container">
       <header className="app-header" style={{marginBottom:'1rem'}}>
         <h1 style={{marginBottom:'.25rem'}}>Favorites</h1>
-        <p className="tagline" style={{fontSize:'.7rem'}}>Your saved titles {session && '(cloud synced)'}</p>
+        <p className="tagline" style={{fontSize:'.7rem'}}>Your Saved Titles {session && '(cloud synced)'}</p>
         <div style={{display:'flex',gap:'.5rem',flexWrap:'wrap'}}>
           <Link to="/" className="pill-btn">← Back</Link>
           {session && <span style={{fontSize:'.6rem',opacity:.6}}>Signed in: {session.user.email}</span>}
