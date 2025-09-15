@@ -1,4 +1,4 @@
-# Movie Search App
+> ## Movie Search App
 
 React + Vite application to search The Movie Database (TMDB) and manage favorites locally or synced to the cloud using Supabase (Auth + Postgres). Includes email/password auth with confirmation & password reset flow.
 
