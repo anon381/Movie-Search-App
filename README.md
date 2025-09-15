@@ -101,3 +101,9 @@ npm run preview
 ---
 Data provided by TMDB; this product uses the TMDB API but is not endorsed or certified by TMDB.
 
+
+
+---
+
+
+> ## THANK YOU
