@@ -24,7 +24,13 @@ export default function FavoritesPage() {
     setSelectedId(id)
     setModalLoading(true)
     setSelected(null)
-    try { const data = await provider.details(id); setSelected(data) } catch (e) { setSelected({ error: e.message || 'Failed to load details' }) } finally { setModalLoading(false) }
+    try {
+      const movie = favoritesArray.find((m) => m.imdbID === id)
+      const data = await provider.details(id, movie?.Type)
+      setSelected(data)
+    } catch (e) {
+      setSelected({ error: e.message || 'Failed to load details' })
+    } finally { setModalLoading(false) }
   }
   const closeModal = () => { setSelectedId(null); setSelected(null); setModalLoading(false) }
 
@@ -51,7 +57,6 @@ export default function FavoritesPage() {
         />
       ) : <div className="status" style={{padding:'2rem 0'}}>No favorites yet</div>}
       <MovieModal open={!!selectedId} loading={modalLoading} movie={selected} onClose={closeModal} />
-      <footer className="app-footer">Data courtesy of TMDB</footer>
     </div>
   )
 }

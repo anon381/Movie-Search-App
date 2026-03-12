@@ -8,6 +8,23 @@ function getKey() {
 
 const IMG_BASE = import.meta.env.VITE_TMDB_IMG_BASE || 'https://image.tmdb.org/t/p'
 
+function mediaKindFrom(type) {
+  return type === 'series' ? 'tv' : 'movie'
+}
+
+function refId(kind, id) {
+  return `${kind}:${id}`
+}
+
+function parseRef(raw) {
+  if (!raw || typeof raw !== 'string') return { kind: null, id: raw }
+  const [kind, id] = raw.split(':')
+  if ((kind === 'movie' || kind === 'tv') && id) {
+    return { kind, id }
+  }
+  return { kind: null, id: raw }
+}
+
 function posterUrl(path, size='w342') {
   if (!path) return null
   return `${IMG_BASE}/${size}${path}`
@@ -31,28 +48,50 @@ export const tmdbProvider = {
     if (!data.results) return { list: [], total: 0 }
     const mapped = data.results
       .filter(r => r.media_type !== 'person')
-      .map(r => ({
-        id: r.id.toString(),
-        imdbID: r.id.toString(),
+      .map(r => {
+        const kind = r.media_type === 'tv' || endpoint === 'search/tv' ? 'tv' : 'movie'
+        const id = r.id.toString()
+        return {
+        id: refId(kind, id),
+        imdbID: refId(kind, id),
+        tmdbId: id,
         Title: r.title || r.name || 'Untitled',
         Year: (r.release_date || r.first_air_date || '').slice(0,4),
         Poster: posterUrl(r.poster_path),
-        Type: r.media_type === 'tv' || endpoint === 'search/tv' ? 'series' : 'movie'
-      }))
+        Type: kind === 'tv' ? 'series' : 'movie'
+      }
+      })
     return { list: mapped, total: data.total_results || mapped.length }
   },
-  async details(id) {
+  async details(rawId, forcedType) {
     const key = getKey()
+    const parsed = parseRef(rawId)
+    const kind = parsed.kind || mediaKindFrom(forcedType)
+    const id = parsed.id
+
+    if (!id) throw new Error('Invalid movie id')
+
     // include credits so we can map director/cast
-    const url = `${API}/movie/${id}?api_key=${key}&append_to_response=credits`
-    const altUrl = `${API}/tv/${id}?api_key=${key}&append_to_response=credits`
-    let res = await fetch(url)
-    if (res.status === 404) res = await fetch(altUrl)
+    const movieUrl = `${API}/movie/${id}?api_key=${key}&append_to_response=credits`
+    const tvUrl = `${API}/tv/${id}?api_key=${key}&append_to_response=credits`
+
+    let res
+    if (kind === 'movie') {
+      res = await fetch(movieUrl)
+    } else if (kind === 'tv') {
+      res = await fetch(tvUrl)
+    } else {
+      res = await fetch(movieUrl)
+      if (res.status === 404) res = await fetch(tvUrl)
+    }
+
     if (!res.ok) throw new Error('Not found')
     const d = await res.json()
+    const detailKind = d.title ? 'movie' : 'tv'
     return {
-      id: d.id.toString(),
-      imdbID: d.imdb_id || d.id.toString(),
+      id: refId(detailKind, d.id.toString()),
+      imdbID: refId(detailKind, d.id.toString()),
+      tmdbId: d.id.toString(),
       Title: d.title || d.name,
       Year: (d.release_date || d.first_air_date || '').slice(0,4),
       Poster: posterUrl(d.poster_path, 'w500'),

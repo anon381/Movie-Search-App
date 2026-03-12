@@ -35,7 +35,6 @@ export default function AuthProvider({ children }) {
         return result
       }
 
-      setSession(result.session)
       return { ok: true, existing: false }
     } catch (error) {
       const message = error.message || 'Unable to create account.'

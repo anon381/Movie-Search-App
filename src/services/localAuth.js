@@ -96,7 +96,7 @@ export async function signUpWithPassword(email, password) {
   accounts.push(account)
   saveAccounts(accounts)
 
-  return { ok: true, existing: false, session: persistSession(account) }
+  return { ok: true, existing: false }
 }
 
 export async function signInWithPassword(email, password) {

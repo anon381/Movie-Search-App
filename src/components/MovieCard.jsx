@@ -14,7 +14,9 @@ export default function MovieCard({ movie, onSelect, isFavorite, toggleFavorite,
         role="button"
         aria-pressed={isFavorite}
         aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-      >{isFavorite ? '×' : '+'}</span>
+      >
+        <span className="fav-toggle-icon" aria-hidden="true">{isFavorite ? '✕' : '♡'}</span>
+      </span>
       <div className="poster-wrapper">
         {posterOk ? (
           <img src={Poster} alt={`${Title} poster`} loading="lazy" />

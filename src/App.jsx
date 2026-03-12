@@ -24,7 +24,9 @@ function App() {
   const [totalResults, setTotalResults] = useState(0)
   const [showFavorites, setShowFavorites] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
-  const [year, setYear] = useState('')
+  const [yearMode, setYearMode] = useState('none')
+  const [yearFrom, setYearFrom] = useState('')
+  const [yearTo, setYearTo] = useState('')
   const [type, setType] = useState(DEFAULT_TYPE)
   const abortRef = useRef(null)
   const cacheRef = useRef(new Map())
@@ -44,35 +46,77 @@ function App() {
   const apiKeyMissing = tmdbMissing
   const pageSize = 20
 
+  const parseYear = (value) => {
+    const y = Number.parseInt(value, 10)
+    return Number.isFinite(y) ? y : null
+  }
+
+  const applyYearFilter = useCallback((list) => {
+    if (!Array.isArray(list) || yearMode === 'none') return list
+
+    const from = parseYear(yearFrom)
+    const to = parseYear(yearTo)
+
+    return list.filter((movie) => {
+      const y = parseYear(movie.Year)
+      if (!y) return false
+
+      if (yearMode === 'exact' && from) return y === from
+      if (yearMode === 'gte' && from) return y >= from
+      if (yearMode === 'lte' && from) return y <= from
+      if (yearMode === 'between' && from && to) {
+        const min = Math.min(from, to)
+        const max = Math.max(from, to)
+        return y >= min && y <= max
+      }
+
+      return true
+    })
+  }, [yearFrom, yearMode, yearTo])
+
+  const yearLabel = (() => {
+    if (yearMode === 'none') return ''
+    if (yearMode === 'exact' && yearFrom) return `=${yearFrom}`
+    if (yearMode === 'gte' && yearFrom) return `>=${yearFrom}`
+    if (yearMode === 'lte' && yearFrom) return `<=${yearFrom}`
+    if (yearMode === 'between' && yearFrom && yearTo) return `${yearFrom}-${yearTo}`
+    return ''
+  })()
+
   const performSearch = useCallback(async () => {
     if (apiKeyMissing) { setLoading(false); return }
     if (!debouncedQuery || debouncedQuery.trim().length < 2) { setMovies([]); setError(null); setTotalResults(0); return }
-    const key = `${debouncedQuery.trim().toLowerCase()}|${page}|${year}|${type}`
+    const key = `${debouncedQuery.trim().toLowerCase()}|${page}|${yearMode}|${yearFrom}|${yearTo}|${type}`
     if (cacheRef.current.has(key)) { const cached = cacheRef.current.get(key); setMovies(cached.movies); setTotalResults(cached.total); return }
     abortRef.current?.abort()
     const controller = new AbortController(); abortRef.current = controller
     setLoading(true); setError(null)
     try {
-      const { list, total } = await provider.search({ query: debouncedQuery.trim(), page, year: year.trim(), type: type === 'all' ? 'all' : type, signal: controller.signal })
-      setMovies(list); setTotalResults(total); cacheRef.current.set(key, { movies: list, total })
-      history.log({ query: debouncedQuery.trim(), year: year.trim(), type, resultCount: total })
+      const exactYear = yearMode === 'exact' ? yearFrom.trim() : ''
+      const { list } = await provider.search({ query: debouncedQuery.trim(), page, year: exactYear, type: type === 'all' ? 'all' : type, signal: controller.signal })
+      const filteredList = applyYearFilter(list)
+      const total = filteredList.length
+      setMovies(filteredList)
+      setTotalResults(total)
+      cacheRef.current.set(key, { movies: filteredList, total })
+      history.log({ query: debouncedQuery.trim(), year: yearLabel, type, resultCount: total })
     } catch (e) { if (e.name === 'AbortError') return; setError(e.message || 'Search failed'); setMovies([]); setTotalResults(0) } finally { setLoading(false) }
-  }, [debouncedQuery, page, year, type, provider, apiKeyMissing, history])
+  }, [debouncedQuery, page, yearMode, yearFrom, yearTo, type, provider, apiKeyMissing, history, applyYearFilter, yearLabel])
 
   useEffect(() => { setPage(1) }, [debouncedQuery])
-  useEffect(() => { setPage(1) }, [year, type])
+  useEffect(() => { setPage(1) }, [yearMode, yearFrom, yearTo, type])
   useEffect(() => { performSearch() }, [performSearch])
   const totalPages = Math.ceil(totalResults / pageSize) || 0
 
   const skeletons = Array.from({ length: Math.min(pageSize, 10) })
-
 
   const openDetails = async (id) => {
     setSelectedId(id)
     setModalLoading(true)
     setSelected(null)
     try {
-      const data = await provider.details(id)
+      const movie = [...movies, ...favoritesArray].find((m) => m.imdbID === id)
+      const data = await provider.details(id, movie?.Type)
       setSelected(data)
     } catch (e) {
       setSelected({ error: e.message || 'Failed to load details' })
@@ -82,15 +126,13 @@ function App() {
   const closeModal = () => { setSelectedId(null); setSelected(null); setModalLoading(false) }
 
   const minQueryOk = debouncedQuery.trim().length >= 2
-  const providerLabel = 'TMDB'
 
   return (
     <div className="app-container">
       <header className="app-header">
-  <h1>Movie Search</h1>
-  <p className="tagline">Find movies powered by {providerLabel}</p>
-  <div className="auth-cluster">
-          <span style={{fontSize:'.65rem',opacity:.7}}>Signed in: {session?.user?.email}</span>
+        <h1>Movie Search</h1>
+        <div className="auth-cluster">
+          <span className="user-email">Signed in: {session?.user?.email}</span>
           <button className="pill-btn" onClick={signOut}>Sign Out</button>
         </div>
       </header>
@@ -102,13 +144,27 @@ function App() {
           setQuery(s)
         }}
       />
-      <div className="post-search-actions" style={{display:'flex', flexWrap:'wrap', gap:'.6rem', alignItems:'center', justifyContent:'center', marginBottom:'1rem'}}>
-        <button className={`pill-btn ${showFavorites ? '' : 'active'}`} onClick={() => { setShowFavorites(false); setShowHistory(false) }}>Results</button>
-        <button className={`pill-btn ${showFavorites ? 'active' : ''}`} onClick={() => { setShowFavorites(true); setShowHistory(false) }}>Favorites ({favoritesArray.length})</button>
-        <button className={`pill-btn ${showHistory ? 'active' : ''}`} onClick={() => { setShowHistory(s => !s); setShowFavorites(false) }}>History</button>
-        <div style={{display:'flex', gap:'.4rem', flexWrap:'wrap'}}>
-          <input type="text" inputMode="numeric" pattern="\\d{4}" placeholder="Year" value={year} onChange={e=> setYear(e.target.value.slice(0,4))} aria-label="Filter by year" style={{ width:'4.5rem', padding:'.4rem .5rem', background:'#1d1f22', border:'1px solid #2c3136', borderRadius:8, color:'inherit', fontSize:'.65rem' }} />
-          <select value={type} onChange={e=> setType(e.target.value)} aria-label="Filter by type" style={{ padding:'.45rem .6rem', background:'#1d1f22', border:'1px solid #2c3136', borderRadius:8, color:'inherit', fontSize:'.65rem' }}>
+      <div className="post-search-actions">
+        <div className="action-chip-group">
+          <button className={`pill-btn ${showFavorites ? '' : 'active'}`} onClick={() => { setShowFavorites(false); setShowHistory(false) }}>Results</button>
+          <button className={`pill-btn ${showFavorites ? 'active' : ''}`} onClick={() => { setShowFavorites(true); setShowHistory(false) }}>Favorites ({favoritesArray.length})</button>
+          <button className={`pill-btn ${showHistory ? 'active' : ''}`} onClick={() => { setShowHistory(s => !s); setShowFavorites(false) }}>History</button>
+        </div>
+        <div className="filter-group">
+          <select className="filter-field filter-select" value={yearMode} onChange={e => setYearMode(e.target.value)} aria-label="Year filter mode">
+            <option value="none">Any year</option>
+            <option value="exact">Exact year</option>
+            <option value="between">Between years</option>
+            <option value="gte">Year and newer</option>
+            <option value="lte">Year and older</option>
+          </select>
+          {yearMode !== 'none' && (
+            <input className="filter-field" type="text" inputMode="numeric" pattern="\\d{4}" placeholder={yearMode === 'between' ? 'From' : 'Year'} value={yearFrom} onChange={e=> setYearFrom(e.target.value.slice(0,4))} aria-label="Start year" />
+          )}
+          {yearMode === 'between' && (
+            <input className="filter-field" type="text" inputMode="numeric" pattern="\\d{4}" placeholder="To" value={yearTo} onChange={e=> setYearTo(e.target.value.slice(0,4))} aria-label="End year" />
+          )}
+          <select className="filter-field filter-select" value={type} onChange={e=> setType(e.target.value)} aria-label="Filter by type">
             <option value="movie">Movies</option>
             <option value="series">Series</option>
             <option value="all">All</option>
@@ -190,7 +246,6 @@ function App() {
         movie={selected}
         onClose={closeModal}
       />
-  <footer className="app-footer">Data courtesy of TMDB</footer>
     </div>
   )
 }

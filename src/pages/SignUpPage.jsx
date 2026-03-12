@@ -30,7 +30,10 @@ export default function SignUpPage() {
       } else if (res && !res.ok) {
         setFailCount(c=>c+1)
       } else if (res && res.ok) {
-        setInfoMsg('Account created. Redirecting...')
+        setPwMode('signin')
+        setPw('')
+        setPwConfirm('')
+        setInfoMsg('Account created. Please sign in.')
         setFailCount(0)
       }
     } else {
