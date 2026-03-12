@@ -210,10 +210,12 @@ html, body { background:#0e1114; overflow-x: hidden; }
 /* Modal */
 .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:1.5rem; backdrop-filter:blur(4px); z-index:10; }
 .modal { width: min(900px, 100%); max-height: 90vh; overflow:auto; background:#16171a; border:1px solid #2a2d34; border-radius:18px; padding:1.5rem 1.75rem 2rem; position:relative; box-shadow:0 8px 32px -8px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04) inset; }
-.close-btn { position:absolute; top:.85rem; right:.85rem; width:2.5rem; height:2.5rem; border-radius:50%; background:linear-gradient(180deg,#2e343d,#20242a); border:1px solid rgba(255,255,255,.09); font-size:1.45rem; line-height:1; display:flex; align-items:center; justify-content:center; font-weight:400; color:#d6dbe2; transition:background .25s, color .25s, border-color .25s, transform .18s, box-shadow .18s; padding:0 0 .08rem 0; box-shadow:0 10px 20px -16px rgba(0,0,0,.95); font-family: "Segoe UI Symbol", "Arial Unicode MS", system-ui, sans-serif; }
-.close-btn:hover { background:#323842; color:#fff; }
+.close-btn { position:absolute; top:.85rem; right:.85rem; width:2.5rem; height:2.5rem; border-radius:50%; background:linear-gradient(180deg,#a81f33,#7b1525); border:1px solid rgba(255,186,196,.5); line-height:1; display:flex; align-items:center; justify-content:center; color:#ffe9ed; transition:background .25s, color .25s, border-color .25s, transform .18s, box-shadow .18s; padding:0; box-shadow:0 10px 20px -16px rgba(168,31,51,.85); }
+.close-btn:hover { background:linear-gradient(180deg,#c82740,#981f32); color:#fff; border-color:rgba(255,213,220,.75); }
 .close-btn:active { transform:scale(.92); }
 .close-btn:focus-visible { outline:2px solid #646cff; outline-offset:2px; }
+.close-icon { width: 1.05rem; height: 1.05rem; display:block; }
+.close-icon path { stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; fill: none; }
 .modal-header h2 { margin:0 0 .3rem; font-size:1.6rem; }
 .muted { color:#8b929e; }
 .muted.small { font-size:.75rem; margin:.35rem 0; }

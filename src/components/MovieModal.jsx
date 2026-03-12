@@ -14,7 +14,11 @@ export default function MovieModal({ open, movie, onClose, loading }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <button className="close-btn" onClick={onClose} aria-label="Close" type="button">×</button>
+        <button className="close-btn" onClick={onClose} aria-label="Close" type="button">
+          <svg className="close-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <path d="M5 5l10 10M15 5L5 15" />
+          </svg>
+        </button>
         {loading && <div className="modal-status">Loading...</div>}
         {hasError && <div className="modal-status error">{movie.error}</div>}
         {!loading && movie && !hasError && (
