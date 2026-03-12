@@ -61,5 +61,5 @@ npm run preview
 - If account data disappears, check whether browser storage or site data was cleared.
 
 ---
-Data provided by TMDB; this product uses the TMDB API but is not endorsed or certified by TMDB.
 
+Data provided by TMDB; this product uses the TMDB API but is not endorsed or certified by TMDB.
