@@ -8,7 +8,7 @@ export default function useFavorites() {
   })
 
   useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(favorites)) } catch {}
+    try { localStorage.setItem(KEY, JSON.stringify(favorites)) } catch { return undefined }
   }, [favorites])
 
   const toggleFavorite = useCallback((id, movie) => {

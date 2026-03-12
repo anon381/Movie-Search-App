@@ -2,25 +2,22 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import MovieGrid from '../components/MovieGrid'
 import MovieModal from '../components/MovieModal'
-import useSupabaseAuth from '../hooks/useSupabaseAuth'
-import useSupabaseFavorites from '../hooks/useSupabaseFavorites'
-import useFavorites from '../hooks/useFavorites'
+import useAuth from '../hooks/useAuth'
+import useUserFavorites from '../hooks/useUserFavorites'
 import { getProvider } from '../services/providers'
 
 export default function FavoritesPage() {
-  const { session, loading } = useSupabaseAuth()
-  const localFav = useFavorites()
-  const remoteFav = useSupabaseFavorites(session)
-  const favoritesArray = (remoteFav.remote && remoteFav.favoritesArray.length) ? remoteFav.favoritesArray : localFav.favoritesArray
-  const favoritesSet = (remoteFav.remote && remoteFav.favoritesArray.length) ? remoteFav.favoritesSet : localFav.favoritesSet
+  const { session, loading } = useAuth()
+  const favorites = useUserFavorites(session)
+  const favoritesArray = favorites.favoritesArray
+  const favoritesSet = favorites.favoritesSet
   const provider = getProvider()
   const [selectedId, setSelectedId] = useState(null)
   const [selected, setSelected] = useState(null)
   const [modalLoading, setModalLoading] = useState(false)
 
   const toggleFavorite = (id, movie) => {
-    if (remoteFav.remote) remoteFav.toggleFavorite(movie || { imdbID: id })
-    else localFav.toggleFavorite(id, movie)
+    favorites.toggleFavorite(movie || { imdbID: id })
   }
 
   const openDetails = async (id) => {
@@ -37,7 +34,7 @@ export default function FavoritesPage() {
     <div className="app-container">
       <header className="app-header" style={{marginBottom:'1rem'}}>
         <h1 style={{marginBottom:'.25rem'}}>Favorites</h1>
-        <p className="tagline" style={{fontSize:'.7rem'}}>Your saved titles {session && '(cloud synced)'}</p>
+        <p className="tagline" style={{fontSize:'.7rem'}}>Your saved titles for this account</p>
         <div style={{display:'flex',gap:'.5rem',flexWrap:'wrap'}}>
           <Link to="/" className="pill-btn">← Back</Link>
           {session && <span style={{fontSize:'.6rem',opacity:.6}}>Signed in: {session.user.email}</span>}
