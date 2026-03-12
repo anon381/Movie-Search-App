@@ -1,4 +1,4 @@
-# Movie Search App
+> ## Movie Search App
 
 React + Vite application to search The Movie Database (TMDB) with browser-local email/password auth, per-account favorites, and per-account search history.
 
@@ -62,4 +62,13 @@ npm run preview
 
 ---
 
+<<<<<<< HEAD
 Data provided by TMDB; this product uses the TMDB API but is not endorsed or certified by TMDB.
+=======
+
+
+---
+
+
+> ## THANK YOU
+>>>>>>> dff88b99cc67ca978bfd9e922a76d5f63c79d241

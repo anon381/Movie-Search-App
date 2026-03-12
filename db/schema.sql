@@ -81,13 +81,6 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- OPTIONAL RETENTION (commented out) ------------------------------------------
--- delete from public.search_history
---   where id in (
---     select id from (
---       select id, row_number() over (partition by user_id order by executed_at desc) as rn
---       from public.search_history
---     ) t where rn > 500
---   );
+
 
 -- End of schema
